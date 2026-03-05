@@ -23,7 +23,11 @@ new class extends Component
             return null;
         }
 
-        return TrainStatusDto::fromArray($this->trainStatusData);
+        try {
+            return TrainStatusDto::fromArray($this->trainStatusData);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
     }
 
     public function mount(?string $trainNumber = null): void
@@ -76,6 +80,14 @@ new class extends Component
 
             if ($rawData === null) {
                 $this->errorMessage = 'Impossibile recuperare lo stato del treno.';
+
+                return false;
+            }
+
+            try {
+                TrainStatusDto::fromArray($rawData);
+            } catch (\InvalidArgumentException) {
+                $this->errorMessage = 'Treno non trovato. Verifica il numero e riprova.';
 
                 return false;
             }

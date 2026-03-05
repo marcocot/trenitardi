@@ -310,4 +310,67 @@ class TrainMonitorTest extends TestCase
 
         $this->get(route('train.status', ['trainNumber' => '9642']))->assertOk();
     }
+
+    // --- Malformed / invalid API data ---
+
+    public function test_search_does_not_crash_when_status_api_returns_empty_origin(): void
+    {
+        Http::fake([
+            '*cercaNumeroTrenoTrenoAutocomplete/9642*' => Http::response(
+                '9642 - REGGIO - 05/03/26|9642-S11781-1772665200000',
+                200,
+            ),
+            '*andamentoTreno/*' => Http::response(
+                json_encode($this->sampleStatusPayload(['origine' => ''])),
+                200,
+            ),
+        ]);
+
+        Livewire::test('train-monitor')
+            ->set('trainNumber', '9642')
+            ->call('search')
+            ->assertSet('trainStatusData', null)
+            ->assertSet('errorMessage', 'Treno non trovato. Verifica il numero e riprova.');
+    }
+
+    public function test_search_does_not_crash_when_status_api_returns_zero_train_number(): void
+    {
+        Http::fake([
+            '*cercaNumeroTrenoTrenoAutocomplete/9642*' => Http::response(
+                '9642 - REGGIO - 05/03/26|9642-S11781-1772665200000',
+                200,
+            ),
+            '*andamentoTreno/*' => Http::response(
+                json_encode($this->sampleStatusPayload(['numeroTreno' => 0])),
+                200,
+            ),
+        ]);
+
+        Livewire::test('train-monitor')
+            ->set('trainNumber', '9642')
+            ->call('search')
+            ->assertSet('trainStatusData', null)
+            ->assertSet('errorMessage', 'Treno non trovato. Verifica il numero e riprova.');
+    }
+
+    public function test_deeplink_with_text_input_shows_error_not_500(): void
+    {
+        Http::fake([
+            '*cercaNumeroTrenoTrenoAutocomplete/test*' => Http::response('', 200),
+        ]);
+
+        $response = $this->get('/status/test');
+
+        $response->assertOk();
+    }
+
+    public function test_component_does_not_crash_when_train_status_data_is_malformed(): void
+    {
+        $component = Livewire::test('train-monitor');
+
+        // Force-set malformed data directly (simulates corrupted state)
+        $component->set('trainStatusData', ['numeroTreno' => 0, 'origine' => '', 'destinazione' => '']);
+
+        $this->assertNull($component->instance()->trainStatus);
+    }
 }
