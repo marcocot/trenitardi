@@ -1,7 +1,7 @@
 # TreniTardi
 
-[![CI](https://github.com/your-org/traintrack/actions/workflows/ci.yml/badge.svg)](https://github.com/your-org/traintrack/actions/workflows/ci.yml)
-[![Deploy](https://github.com/your-org/traintrack/actions/workflows/fly-deploy.yml/badge.svg)](https://github.com/your-org/traintrack/actions/workflows/fly-deploy.yml)
+[![CI](https://github.com/marcocot/trenitardi/actions/workflows/ci.yml/badge.svg)](https://github.com/marcocot/trenitardi/actions/workflows/ci.yml)
+[![Deploy](https://github.com/marcocot/trenitardi/actions/workflows/fly-deploy.yml/badge.svg)](https://github.com/marcocot/trenitardi/actions/workflows/fly-deploy.yml)
 [![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://www.php.net)
 [![Laravel 12](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![Livewire 4](https://img.shields.io/badge/Livewire-4-FB70A9?logo=livewire&logoColor=white)](https://livewire.laravel.com)
