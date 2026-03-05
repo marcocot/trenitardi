@@ -42,9 +42,24 @@
                     </div>
 
                     {{-- Time / Delay --}}
-                    @if ($stop->isPassed() && $stop->departureDelay > 0)
-                        <span class="text-xs text-red-400">+{{ $stop->departureDelay }} min</span>
-                    @elseif (!$stop->isPassed() && ($stop->scheduledTime || $stop->scheduledDeparturePlatform))
+                    @if ($stop->isPassed())
+                        @php
+                            $toRome = fn (int $ms) => \Carbon\Carbon::createFromTimestamp(intval($ms / 1000), 'Europe/Rome')->format('H:i');
+                            $actualArrival = $stop->actualArrivalTime ? $toRome($stop->actualArrivalTime) : null;
+                            $scheduledArrival = $stop->scheduledTime ? $toRome($stop->scheduledTime) : null;
+                        @endphp
+                        @if ($actualArrival && $scheduledArrival)
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-600 line-through">{{ $scheduledArrival }}</span>
+                                <span class="text-xs {{ $stop->arrivalDelay > 0 ? 'text-red-400' : 'text-emerald-400' }}">{{ $actualArrival }}</span>
+                                @if ($stop->arrivalDelay > 0)
+                                    <span class="text-xs text-red-500">+{{ $stop->arrivalDelay }}</span>
+                                @endif
+                            </div>
+                        @elseif ($stop->departureDelay > 0)
+                            <span class="text-xs text-red-400">+{{ $stop->departureDelay }} min</span>
+                        @endif
+                    @elseif ($stop->scheduledTime || $stop->scheduledDeparturePlatform)
                         @php
                             $time = $stop->scheduledTime ? \Carbon\Carbon::createFromTimestamp(intval($stop->scheduledTime / 1000), 'Europe/Rome')->format('H:i') : null;
                         @endphp
