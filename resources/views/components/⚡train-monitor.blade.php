@@ -112,6 +112,7 @@ new class extends Component
     x-init="init()"
 >
     <x-train-header />
+    <x-pwa-install-banner />
 
     <main class="mx-auto w-full max-w-2xl lg:max-w-[80%] px-4 py-6">
 
