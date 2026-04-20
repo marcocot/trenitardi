@@ -4,7 +4,12 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "lint": "oxlint ."
+    },
+    "devDependencies": {
+        "oxfmt": "^0.36.0",
+        "oxlint": "1.51.0"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
@@ -19,5 +24,6 @@
         "@rollup/rollup-linux-x64-gnu": "4.59.0",
         "@tailwindcss/oxide-linux-x64-gnu": "^4.0.1",
         "lightningcss-linux-x64-gnu": "^1.29.1"
-    }
+    },
+    "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

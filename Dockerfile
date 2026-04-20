@@ -1,12 +1,10 @@
-# syntax = docker/dockerfile:experimental
+# syntax = docker/dockerfile:1.6
 
-ARG PHP_VERSION=8.2
-ARG NODE_VERSION=18
-FROM ubuntu:22.04 as base
-LABEL fly_launch_runtime="laravel"
+ARG PHP_VERSION=8.4
+ARG NODE_VERSION=22
 
-# PHP_VERSION needs to be repeated here
-# See https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
+FROM ubuntu:22.04 AS base
+
 ARG PHP_VERSION
 ENV DEBIAN_FRONTEND=noninteractive \
     COMPOSER_ALLOW_SUPERUSER=1 \
@@ -25,11 +23,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PHP_UPLOAD_MAX_FILE_SIZE=100M \
     PHP_ALLOW_URL_FOPEN=Off
 
-# Prepare base container: 
-# 1. Install PHP, Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-COPY .fly/php/ondrej_ubuntu_php.gpg /etc/apt/trusted.gpg.d/ondrej_ubuntu_php.gpg
-ADD .fly/php/packages/${PHP_VERSION}.txt /tmp/php-packages.txt
+COPY docker/php/ondrej_ubuntu_php.gpg /etc/apt/trusted.gpg.d/ondrej_ubuntu_php.gpg
+ADD docker/php/packages/${PHP_VERSION}.txt /tmp/php-packages.txt
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gnupg2 ca-certificates git-core curl zip unzip \
@@ -44,78 +40,48 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
 
-# 2. Copy config files to proper locations
-COPY .fly/nginx/ /etc/nginx/
-COPY .fly/fpm/ /etc/php/${PHP_VERSION}/fpm/
-COPY .fly/supervisor/ /etc/supervisor/
-COPY .fly/entrypoint.sh /entrypoint
-COPY .fly/start-nginx.sh /usr/local/bin/start-nginx
-RUN chmod 754 /usr/local/bin/start-nginx
-    
-# 3. Copy application code, skipping files based on .dockerignore
+COPY docker/nginx/ /etc/nginx/
+COPY docker/fpm/ /etc/php/${PHP_VERSION}/fpm/
+COPY docker/supervisor/ /etc/supervisor/
+COPY docker/entrypoint.sh /entrypoint
+COPY docker/start-nginx.sh /usr/local/bin/start-nginx
+RUN chmod +x /entrypoint /usr/local/bin/start-nginx
+
 COPY . /var/www/html
 WORKDIR /var/www/html
 
-# 4. Setup application dependencies 
 RUN composer install --optimize-autoloader --no-dev \
     && mkdir -p storage/logs \
     && CACHE_STORE=file php artisan optimize:clear \
     && chown -R www-data:www-data /var/www/html \
-    && echo "MAILTO=\"\"\n* * * * * www-data /usr/bin/php /var/www/html/artisan schedule:run" > /etc/cron.d/laravel \
-    && if [ -d .fly ]; then cp .fly/entrypoint.sh /entrypoint; chmod +x /entrypoint; fi;
+    && printf 'MAILTO=""\n* * * * * www-data /usr/bin/php /var/www/html/artisan schedule:run\n' > /etc/cron.d/laravel
 
 
+FROM node:${NODE_VERSION} AS assets
 
-
-# Multi-stage build: Build static assets
-# This allows us to not include Node within the final container
-FROM node:${NODE_VERSION} as node_modules_go_brrr
-
-RUN mkdir /app
-
-RUN mkdir -p  /app
 WORKDIR /app
 COPY . .
 COPY --from=base /var/www/html/vendor /app/vendor
 
-# Use yarn or npm depending on what type of
-# lock file we might find. Defaults to
-# NPM if no lock file is found.
-# Note: We run "production" for Mix and "build" for Vite
-RUN if [ -f "vite.config.js" ] || [ -f "vite.config.ts" ]; then \
-        ASSET_CMD="build"; \
-    else \
-        ASSET_CMD="production"; \
-    fi; \
-    if [ -f "yarn.lock" ]; then \
-        yarn install --frozen-lockfile; \
-        yarn $ASSET_CMD; \
+RUN if [ -f "package-lock.json" ]; then \
+        npm ci --no-audit && npm run build; \
+    elif [ -f "yarn.lock" ]; then \
+        yarn install --frozen-lockfile && yarn build; \
     elif [ -f "pnpm-lock.yaml" ]; then \
-        corepack enable && corepack prepare pnpm@latest-8 --activate; \
-        pnpm install --frozen-lockfile; \
-        pnpm run $ASSET_CMD; \
-    elif [ -f "package-lock.json" ]; then \
-        npm ci --no-audit; \
-        npm run $ASSET_CMD; \
+        corepack enable && corepack prepare pnpm@latest-8 --activate \
+        && pnpm install --frozen-lockfile && pnpm run build; \
     else \
-        npm install; \
-        npm run $ASSET_CMD; \
-    fi;
+        npm install && npm run build; \
+    fi
 
-# From our base container created above, we
-# create our final image, adding in static
-# assets that we generated above
+
 FROM base
 
-# Packages like Laravel Nova may have added assets to the public directory
-# or maybe some custom assets were added manually! Either way, we merge
-# in the assets we generated above rather than overwrite them
-COPY --from=node_modules_go_brrr /app/public /var/www/html/public-npm
+COPY --from=assets /app/public /var/www/html/public-npm
 RUN rsync -ar /var/www/html/public-npm/ /var/www/html/public/ \
     && rm -rf /var/www/html/public-npm \
     && chown -R www-data:www-data /var/www/html
 
-# 5. Setup Entrypoint
 EXPOSE 8080
 
 ENTRYPOINT ["/entrypoint"]

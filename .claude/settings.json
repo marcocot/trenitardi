@@ -24,7 +24,14 @@
       "Bash(php artisan make:test --phpunit TrainMonitorTest --no-interaction)",
       "Bash(php artisan test --compact)",
       "Bash(php artisan test --compact tests/Feature/TrainMonitorTest.php)",
-      "Bash(php artisan test --compact tests/Unit/)"
+      "Bash(php artisan test --compact tests/Unit/)",
+      "Bash(cp -R /Users/marco/Development/trenitardi_web/.fly/nginx /Users/marco/Development/trenitardi_web/docker/nginx)",
+      "Bash(cp -R /Users/marco/Development/trenitardi_web/.fly/fpm /Users/marco/Development/trenitardi_web/docker/fpm)",
+      "Bash(cp -R /Users/marco/Development/trenitardi_web/.fly/supervisor /Users/marco/Development/trenitardi_web/docker/supervisor)",
+      "Bash(composer remove *)",
+      "Bash(just test *)",
+      "Bash(git rm *)",
+      "Bash(git add *)"
     ]
   }
 }

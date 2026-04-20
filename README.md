@@ -1,7 +1,6 @@
 # TreniTardi
 
-[![CI](https://github.com/marcocot/trenitardi/actions/workflows/ci.yml/badge.svg)](https://github.com/marcocot/trenitardi/actions/workflows/ci.yml)
-[![Deploy](https://github.com/marcocot/trenitardi/actions/workflows/fly-deploy.yml/badge.svg)](https://github.com/marcocot/trenitardi/actions/workflows/fly-deploy.yml)
+[![release](https://github.com/marcocot/trenitardi/actions/workflows/release.yaml/badge.svg)](https://github.com/marcocot/trenitardi/actions/workflows/release.yaml)
 [![PHP 8.4](https://img.shields.io/badge/PHP-8.4-777BB4?logo=php&logoColor=white)](https://www.php.net)
 [![Laravel 12](https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![Livewire 4](https://img.shields.io/badge/Livewire-4-FB70A9?logo=livewire&logoColor=white)](https://livewire.laravel.com)
@@ -66,12 +65,19 @@ The `TrainService` handles both calls. DTOs in `app/DTOs/` map the Italian API k
 
 ## Deployment
 
-The app deploys automatically to [Fly.io](https://fly.io) on every push to `master` via GitHub Actions. To deploy manually:
+The app ships as a single Docker image published to `registry.homelab.devncode.it/trenitardi-web` by GitHub Actions on every GitHub **release**. Tags are multi-arch (`linux/amd64`, `linux/arm64`) and the versioning follows the release tag (`v1.2.3` → `1.2.3`, `1.2`, `latest`).
+
+Local image workflows are driven by `just`:
 
 ```bash
-fly deploy
+just build                 # build single-arch local image
+just login                 # docker login (expects REGISTRY_USERNAME / REGISTRY_PASSWORD)
+just push TAG=1.2.3        # buildx multi-arch push
+just release v1.2.3        # tag + gh release (triggers CI publish)
 ```
+
+The container listens on port `8080` and is designed to sit behind a reverse proxy (Traefik/nginx) that handles TLS.
 
 ## Contributing
 
-PRs are welcome. The CI pipeline (lint + tests) runs automatically on every pull request — make sure both jobs are green before requesting a review.
+PRs are welcome. The `release` workflow (lint + tests) runs automatically on every pull request — make sure both jobs are green before requesting a review.
