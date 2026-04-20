@@ -1,4 +1,18 @@
 
+### Documentation
+
+- Update for v1.1.0 [skip ci] ([`f973419`](https://github.com/marcocot/trenitardi/commit/f973419892066d0202bb9d7693ce0745668b0f04))
+
+### Features
+
+- Enable pwa ([`71c40a0`](https://github.com/marcocot/trenitardi/commit/71c40a0dea62110d3d1a622cf2d5976daf824a6f))
+
+### Miscellaneous
+
+- Bump laravel/sail from 1.53.0 to 1.54.0 in the laravel group ([`e22c54a`](https://github.com/marcocot/trenitardi/commit/e22c54a9c3fc03af02c4fb85ec0ed812c8e54626))
+- Bump laravel/sail from 1.53.0 to 1.54.0 in the laravel group ([`537b65e`](https://github.com/marcocot/trenitardi/commit/537b65e48f48ec5639a574a2a204f92964f623cc))
+- Drop fly.io, ship single docker image ([`f16b27e`](https://github.com/marcocot/trenitardi/commit/f16b27e50c279f8da767d6cdea6d37cc27ecc867))
+
 ### Bug Fixes
 
 - Handle invalid search values ([`58a5ad3`](https://github.com/marcocot/trenitardi/commit/58a5ad3361ab5de25cd7090280d0ac81f5526672))
